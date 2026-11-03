@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = ["crates/*", "src-tauri"]
+exclude = ["android"]
 
 [workspace.package]
 version = "0.1.34"
