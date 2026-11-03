@@ -1,5 +1,6 @@
 import { executeAction, getAction, registerActions } from "@/platform/actions";
 import { isTauri } from "@/platform/ipc";
+import { isRemoteOnly } from "@/platform/remoteOnly";
 import { closeProject, confirmLeaveProject, openProject, useProject } from "@/platform/project";
 import { runSearchFieldCommand, showContextMenu } from "@/ui";
 import { showCustomizeToolbar } from "./MainToolbarDialog";
@@ -12,6 +13,10 @@ import { cancelTask, canCancel, useTasks } from "./tasks";
 import { maybeEditorService, showStatusInfo } from "./contributions";
 
 export async function openProjectDialog() {
+  if (isRemoteOnly()) {
+    await executeAction("remote.connect");
+    return;
+  }
   if (!isTauri()) {
     notify({
       level: "warning",

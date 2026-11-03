@@ -20,6 +20,7 @@ import {
   useProject,
 } from "@/platform/project";
 import { connectRemote, isRemoteWindow } from "@/platform/remote";
+import { isRemoteOnly, LOCAL_UNAVAILABLE } from "@/platform/remoteOnly";
 import { holdSplash } from "@/platform/splash";
 import { editorService, maybeEditorService, notifications } from "@/workbench/contributions";
 import { chooseProjectWindow } from "@/workbench/projectWindow";
@@ -33,6 +34,10 @@ function errorText(e: unknown) {
 }
 
 function desktopOnly(): boolean {
+  if (isRemoteOnly()) {
+    notifications().notify({ level: "warning", title: LOCAL_UNAVAILABLE });
+    return true;
+  }
   if (isTauri()) return false;
   notifications().notify({ level: "warning", title: t("app.window.desktopOnly") });
   return true;

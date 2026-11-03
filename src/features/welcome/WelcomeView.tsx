@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { executeAction } from "@/platform/actions";
 import { useT, useTx, tx } from "@/platform/i18n";
 import { isTauri } from "@/platform/ipc";
+import { isRemoteOnly, useRemoteOnly } from "@/platform/remoteOnly";
 import { useProject } from "@/platform/project";
 import { useRemoteProgress } from "@/platform/remote";
 import { stageLabel, useConnectDialog } from "@/features/remote-dev/model";
@@ -35,6 +36,10 @@ export const GEAR_MENU: MenuItem[] = [
 ];
 
 function GearButton() {
+  const remoteOnly = useRemoteOnly();
+  const items = remoteOnly
+    ? GEAR_MENU.filter((i) => !("action" in i) || i.action !== "plugins.installFromDisk")
+    : GEAR_MENU;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
   return (
@@ -53,7 +58,7 @@ function GearButton() {
         open={open}
         onClose={() => setOpen(false)}
         anchor={ref}
-        items={GEAR_MENU}
+        items={items}
         placement="top-start"
         aria-label="Manage"
       />
@@ -91,7 +96,7 @@ function NavItem({
 function useFolderDrop(): boolean {
   const [over, setOver] = useState(false);
   useEffect(() => {
-    if (!isTauri()) return;
+    if (!isTauri() || isRemoteOnly()) return;
     let unlisten: (() => void) | undefined;
     let disposed = false;
     void import("@tauri-apps/api/webview").then(({ getCurrentWebview }) =>

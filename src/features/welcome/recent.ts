@@ -5,6 +5,7 @@ import { commands, IpcError, isCancelled, isTauri, type RecentProject } from "@/
 import { openProject, useProject } from "@/platform/project";
 import { connectRemote, forgetRemote, parseRemoteLocation, recentRemotes, remoteLocation } from "@/platform/remote";
 import { tx } from "@/platform/i18n";
+import { isRemoteOnly } from "@/platform/remoteOnly";
 import { fuzzyMatch } from "@/ui";
 import { notifications } from "@/workbench/contributions";
 import { openRemoteProject } from "@/workbench/projectWindow";
@@ -57,7 +58,8 @@ export async function loadRecent() {
 }
 
 /** The recent remote projects (Remote Development) among the local ones, most recent first. */
-function withRemotes(local: RecentProject[]): RecentProject[] {
+function withRemotes(all: RecentProject[]): RecentProject[] {
+  const local = isRemoteOnly() ? [] : all;
   const remote: RecentProject[] = recentRemotes().map((r) => ({
     path: remoteLocation(r.sshConfig, r.path),
     name: r.name,

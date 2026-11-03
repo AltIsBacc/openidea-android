@@ -8,6 +8,7 @@ import { askRemoveRecent, ProjectBadge, recentMenu } from "./RecentList";
 import { filterRecent, loadRecent, openRecent, useRecent, type RecentMatch } from "./recent";
 import styles from "./ProjectPopup.module.css";
 import { tx } from "@/platform/i18n";
+import { useRemoteOnly } from "@/platform/remoteOnly";
 
 type Entry =
   | { kind: "action"; id: string; label: string; icon: IconName }
@@ -37,6 +38,7 @@ function useOpenProjects(): OpenProject[] {
 /** The title bar project widget's popup, after IDEA's ProjectWidget: actions, open projects, recent projects; type to filter. */
 export function ProjectPopup({ anchor, onClose }: ProjectPopupProps) {
   const actions = useActions((s) => s.actions);
+  const remoteOnly = useRemoteOnly();
   const recent = useRecent((s) => s.projects);
   const home = useRecent((s) => s.home);
   const openProjects = useOpenProjects();
@@ -59,9 +61,9 @@ export function ProjectPopup({ anchor, onClose }: ProjectPopupProps) {
       query,
       home,
     ).map((m) => ({ kind: "project" as const, open: false, m }));
-    const acts = query ? [] : ACTIONS.filter((a) => actions.has(a.id)).map((a) => ({ kind: "action" as const, ...a }));
+    const acts = query ? [] : ACTIONS.filter((a) => actions.has(a.id) && (!remoteOnly || a.id === "remote.connect")).map((a) => ({ kind: "action" as const, ...a }));
     return [...acts, ...open, ...rest];
-  }, [actions, recent, home, openProjects, query]);
+  }, [actions, remoteOnly, recent, home, openProjects, query]);
   const current = Math.min(active, entries.length - 1);
 
   useEffect(() => {

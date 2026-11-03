@@ -23,21 +23,25 @@ import { askRemoveRecent, ProjectBadge, recentMenu } from "./RecentList";
 import { filterRecent, openRecent, useRecent, type RecentMatch } from "./recent";
 import styles from "./Welcome.module.css";
 import { tx } from "@/platform/i18n";
+import { useRemoteOnly } from "@/platform/remoteOnly";
 
 function HeaderButtons() {
-  const canClone = useActions((s) => s.actions.has("vcs.clone"));
+  const remoteOnly = useRemoteOnly();
+  const canClone = useActions((s) => s.actions.has("vcs.clone")) && !remoteOnly;
   const canRemote = useActions((s) => s.actions.has("remote.connect"));
   const opening = useProject((s) => s.opening);
   const openKey = shortcutLabel("file.openProject");
   return (
     <div className={styles.headerButtons}>
-      <Button
-        disabled={opening}
-        onClick={() => void executeAction("file.openProject")}
-        title={openKey ? tx`Open (${openKey})` : "Open"}
-      >
-        <T>Open</T>
-      </Button>
+      {!remoteOnly && (
+        <Button
+          disabled={opening}
+          onClick={() => void executeAction("file.openProject")}
+          title={openKey ? tx`Open (${openKey})` : "Open"}
+        >
+          <T>Open</T>
+        </Button>
+      )}
       {canClone && (
         <Button onClick={() => void executeAction("vcs.clone")}>
           <T>Clone Repository</T>
@@ -54,7 +58,8 @@ function HeaderButtons() {
 
 /** Shown when there are no recent projects (IntelliJ's empty welcome). */
 function Landing() {
-  const canClone = useActions((s) => s.actions.has("vcs.clone"));
+  const remoteOnly = useRemoteOnly();
+  const canClone = useActions((s) => s.actions.has("vcs.clone")) && !remoteOnly;
   const canRemote = useActions((s) => s.actions.has("remote.connect"));
   const opening = useProject((s) => s.opening);
   const shortcut = shortcutLabel("file.openProject");
@@ -64,24 +69,32 @@ function Landing() {
         <T>Welcome to OpenIDEA</T>
       </div>
       <p className={styles.landingText}>
-        {canClone
-          ? tx("Open a folder from disk or clone a repository from version control.")
-          : tx("Open a folder from disk.")}
-        <br />
-        <T>You can also drop a folder onto this window.</T>
+        {remoteOnly ? (
+          <T>Connect to an SSH host to open a project that lives there.</T>
+        ) : (
+          <>
+            {canClone
+              ? tx("Open a folder from disk or clone a repository from version control.")
+              : tx("Open a folder from disk.")}
+            <br />
+            <T>You can also drop a folder onto this window.</T>
+          </>
+        )}
       </p>
       <div className={styles.landingActions}>
-        <button
-          type="button"
-          className={styles.landingAction}
-          disabled={opening}
-          onClick={() => void executeAction("file.openProject")}
-        >
-          <span className={styles.landingIcon}>
-            <Icon name="folder-open" size={20} />
-          </span>
-          <T>Open</T>
-        </button>
+        {!remoteOnly && (
+          <button
+            type="button"
+            className={styles.landingAction}
+            disabled={opening}
+            onClick={() => void executeAction("file.openProject")}
+          >
+            <span className={styles.landingIcon}>
+              <Icon name="folder-open" size={20} />
+            </span>
+            <T>Open</T>
+          </button>
+        )}
         {canClone && (
           <button type="button" className={styles.landingAction} onClick={() => void executeAction("vcs.clone")}>
             <span className={styles.landingIcon}>
@@ -104,7 +117,7 @@ function Landing() {
           </button>
         )}
       </div>
-      {shortcut && (
+      {shortcut && !remoteOnly && (
         <div className={styles.landingHint}>
           <T>Open a folder</T> <Kbd>{shortcut}</Kbd>
         </div>

@@ -8,6 +8,7 @@ import { create } from "zustand";
 import { commands, isCancelled, isTauri, type Settings } from "@/platform/ipc";
 import { openProject, startupLaunchHandled, useProject } from "@/platform/project";
 import { connectRemote, parseRemoteLocation, projectLocation } from "@/platform/remote";
+import { isRemoteOnly } from "@/platform/remoteOnly";
 import { notifications } from "@/workbench/contributions";
 
 const SESSION_KEY = "openidea.session.openProject";
@@ -114,6 +115,11 @@ export async function reopenLastProject(): Promise<void> {
 }
 
 async function reopen(path: string) {
+  if (isRemoteOnly() && !parseRemoteLocation(path)) {
+    write(SESSION_KEY, null);
+    windowProject(null);
+    return;
+  }
   const name = path.slice(path.lastIndexOf("/") + 1) || path;
   useSession.setState({ reopening: path });
   try {

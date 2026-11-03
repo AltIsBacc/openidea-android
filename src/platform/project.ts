@@ -2,6 +2,7 @@
 import { confirmProjectTrust } from "./projectTrust";
 import { create } from "zustand";
 import { call, commands, type ProjectInfo, type Settings } from "./ipc";
+import { isRemoteOnly, LOCAL_UNAVAILABLE } from "./remoteOnly";
 import { isVirtualUri, virtualContainer, virtualName, virtualParent } from "./virtualDocs";
 
 interface ProjectState {
@@ -49,6 +50,7 @@ export function startupLaunchHandled(): Promise<void> {
 }
 
 export async function openProject(path: string): Promise<ProjectInfo> {
+  if (isRemoteOnly()) throw new Error(LOCAL_UNAVAILABLE);
   await confirmProjectTrust(path, "local");
   useProject.setState({ opening: true });
   try {
@@ -62,6 +64,7 @@ export async function openProject(path: string): Promise<ProjectInfo> {
 
 /** Switches this window to LightEdit for the loose file `path` (kept when already in LightEdit). */
 export async function openLightEdit(path: string): Promise<void> {
+  if (isRemoteOnly()) throw new Error(LOCAL_UNAVAILABLE);
   const settings = await call(commands.lightEditOpen(path));
   useProject.setState({ project: null, settings, lightEdit: true });
 }
