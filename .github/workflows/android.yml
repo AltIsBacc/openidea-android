@@ -1,0 +1,55 @@
+name: Android
+on:
+  push:
+    branches: [main]
+    paths: ["android/**", "src/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  NDK_VERSION: 27.0.12077973
+
+jobs:
+  apk:
+    name: Debug APK (arm64)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;${NDK_VERSION}"
+      - uses: dtolnay/rust-toolchain@stable
+        with: { targets: aarch64-linux-android }
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: android
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - run: pnpm install --frozen-lockfile
+      # The shell has no beforeBuildCommand: the UI is built here.
+      - run: pnpm build
+      - name: Generate the Android project
+        working-directory: android
+        run: |
+          if [ ! -d gen/android ]; then ../node_modules/.bin/tauri android init --ci; fi
+      - name: Build APK
+        working-directory: android
+        run: |
+          export NDK_HOME="$ANDROID_HOME/ndk/$NDK_VERSION"
+          ../node_modules/.bin/tauri android build --debug --apk --target aarch64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openidea-android-arm64-debug
+          path: android/gen/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
