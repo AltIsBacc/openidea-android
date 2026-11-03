@@ -21,13 +21,21 @@ export function guessOs(): "macos" | "windows" | "linux" | "web" {
   return "web";
 }
 
+/**
+ * Android's WebView reports "Linux", but the system draws the window: there are no caption buttons or
+ * resize edges to replace, so the desktop frameless title bar must not be used.
+ */
+function isAndroid(): boolean {
+  return typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+}
+
 export const usePlatform = create<PlatformInfo>(() => {
   const os = guessOs();
   return {
     os,
     version: null,
     overlayTitleBar: isTauri() && os === "macos",
-    framelessTitleBar: isTauri() && (os === "windows" || os === "linux"),
+    framelessTitleBar: isTauri() && !isAndroid() && (os === "windows" || os === "linux"),
   };
 });
 
@@ -39,7 +47,7 @@ export async function loadPlatformInfo() {
       os: info.platform,
       version: info.version,
       overlayTitleBar: info.platform === "macos",
-      framelessTitleBar: info.platform === "windows" || info.platform === "linux",
+      framelessTitleBar: !isAndroid() && (info.platform === "windows" || info.platform === "linux"),
     });
   } catch {
     /* keep the user-agent guess */
