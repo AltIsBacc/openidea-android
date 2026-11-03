@@ -13,5 +13,5 @@
       "csp": "default-src 'self'; img-src 'self' asset: data: blob: https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src ipc: http://ipc.localhost; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:"
     }
   },
-  "bundle": { "active": true, "targets": "all" }
+  "bundle": { "active": true, "targets": "all", "icon": ["../src-tauri/icons/icon.png"] }
 }
