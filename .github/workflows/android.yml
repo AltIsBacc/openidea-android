@@ -33,12 +33,7 @@ jobs:
           workspaces: android
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - run: pnpm install --frozen-lockfile
-      # The shell has no beforeBuildCommand: the UI is built here.
       - run: pnpm build
-      - name: Generate the Android project
-        working-directory: android
-        run: |
-          if [ ! -d gen/android ]; then ../node_modules/.bin/tauri android init --ci; fi
       - name: Build APK
         working-directory: android
         run: |
