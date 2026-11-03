@@ -20,6 +20,16 @@ body,
   margin: 0;
 }
 
+html {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+}
+
 body {
   background: var(--bg-frame);
   color: var(--fg);

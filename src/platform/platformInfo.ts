@@ -9,6 +9,8 @@ interface PlatformInfo {
   overlayTitleBar: boolean;
   /** Frameless window: the title bar draws the main menu and caption buttons (Tauri, Windows and Linux). */
   framelessTitleBar: boolean;
+  /** Android: the system draws the window and the screen is small, so decorative chrome is dropped. */
+  mobile: boolean;
 }
 
 /** OS from the user agent (before the backend answers, or in a browser). "darwin" must not read as Windows. */
@@ -25,7 +27,7 @@ export function guessOs(): "macos" | "windows" | "linux" | "web" {
  * Android's WebView reports "Linux", but the system draws the window: there are no caption buttons or
  * resize edges to replace, so the desktop frameless title bar must not be used.
  */
-function isAndroid(): boolean {
+export function isAndroid(): boolean {
   return typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
 }
 
@@ -36,6 +38,7 @@ export const usePlatform = create<PlatformInfo>(() => {
     version: null,
     overlayTitleBar: isTauri() && os === "macos",
     framelessTitleBar: isTauri() && !isAndroid() && (os === "windows" || os === "linux"),
+    mobile: isAndroid(),
   };
 });
 

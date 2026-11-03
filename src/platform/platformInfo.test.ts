@@ -29,4 +29,11 @@ describe("platform info", () => {
     setUserAgent(ANDROID_UA);
     expect((await loadStore()).getState().framelessTitleBar).toBe(false);
   });
+
+  it("flags Android as mobile and desktop as not", async () => {
+    setUserAgent(ANDROID_UA);
+    expect((await loadStore()).getState().mobile).toBe(true);
+    setUserAgent(LINUX_UA);
+    expect((await loadStore()).getState().mobile).toBe(false);
+  });
 });
